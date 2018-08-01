@@ -7,30 +7,22 @@ print("Reading config")
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-auth = config["Auth"]
-options = config["Options"]
-
-interval = int(options["Interval"])
-reminderAge = int(options["ReminderAge"])
-removalAge = int(options["RemovalAge"])
-postsPerRun = int(options["PostsPerRun"])
-reminderMessage = options["ReminderMessage"]
-removalMessage = options["RemovalMessage"]
+subreddit = config["Options"]["subreddit"]
+interval = int(config["Options"]["interval"])
+reminder_age = int(config["Options"]["reminder_age"])
+removal_age = int(config["Options"]["removal_age"])
+posts_per_run = int(config["Options"]["posts_per_run"])
+reminder_message = config["Options"]["reminder_message"]
+removal_message = config["Options"]["removal_message"]
 
 # These values are exposed for use in formatted messages, but not directly used
-reminderAgeMinutes = int(reminderAge / 60)
-removalAgeMinutes = int(removalAge / 60)
+reminder_age_minutes = int(reminder_age / 60)
+removal_age_minutes = int(removal_age / 60)
 
-print(f"Logging into Reddit as /u/{auth['Username']}")
-r = praw.Reddit(
-	user_agent=auth["UserAgent"],
-	client_id=auth["ClientId"],
-	client_secret=auth["ClientSecret"],
-	username=auth["Username"],
-	password=auth["Password"]
-)
-print(f"Watching /r/{options['Subreddit']}/new")
-sub = r.subreddit(options["Subreddit"])
+r = praw.Reddit(**config["Auth"])
+print(f"Logged in as /u/{r.user.me().name}")
+sub = r.subreddit(subreddit)
+print(f"Watching /r/{sub.display_name}")
 
 print("Attempting to read last state")
 try:
@@ -44,13 +36,13 @@ except:
 def main():
 	print("Running")
 
-	for post in sub.new(limit=postsPerRun):
+	for post in sub.new(limit=posts_per_run):
 		post_age = int(time.time() - post.created_utc)
 
 		if post.link_flair_text or post.link_flair_css_class:
 			print(f"Skip    {post.id} (age={post_age}, link_flair_text={repr(post.link_flair_text)}, link_flair_css_class={repr(post.link_flair_css_class)})")
 
-		elif post_age > removalAge:
+		elif post_age > removal_age:
 			print(f"Remove  {post.id} (age={post_age})")
 
 			# We don't need to track the ID anymore because it won't be in /new
@@ -58,19 +50,19 @@ def main():
 				remindedIds.pop(remindedIds.index(post.id))
 
 			post.mod.remove()
-			post.reply(removalMessage.format(
+			post.reply(removal_message.format(
 				username=post.author.name,
-				reminderAgeMinutes=reminderAgeMinutes,
+				reminder_age_minutes=reminder_age_minutes,
 				removalAgeMinutes=removalAgeMinutes
 			))
 
-		elif post_age > reminderAge and not post.id in remindedIds:
+		elif post_age > reminder_age and not post.id in remindedIds:
 			print(f"Remind  {post.id} (age={post_age})")
 			remindedIds.append(post.id)
 
-			post.reply(reminderMessage.format(
+			post.reply(reminder_message.format(
 				username=post.author.name,
-				reminderAgeMinutes=reminderAgeMinutes,
+				reminder_age_minutes=reminder_age_minutes,
 				removalAgeMinutes=removalAgeMinutes
 			))
 
@@ -79,7 +71,7 @@ def main():
 
 	# Remove post IDs we shouldn't encounter anymore
 	# TODO: this isn't perfect, older posts can backflow into /new when removing newer posts
-	while len(remindedIds) > postsPerRun:
+	while len(remindedIds) > posts_per_run:
 		remindedIds.pop(0)
 
 	# write IDs to disk so we can resume if a crash occurs

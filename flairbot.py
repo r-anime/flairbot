@@ -44,7 +44,7 @@ except:
 		with open("remindedIds.json", "r") as file:
 			reminded_ids = json.load(file)
 			initial_time = 0
-		print("Loaded reminded IDs from remindedIds.json; assuming no time limit")
+		print("Loaded reminded IDs from reminded_ids.json; assuming no time limit")
 	except:
 		print("Failed to recover state from last run, starting fresh")
 		reminded_ids = []
@@ -94,28 +94,28 @@ def main():
 			print(f"  Remove  {post.id} (age={post_age})")
 			remove_for_missing_flair(post)
 			# We don't need to track the ID anymore because it won't be in /new
-			if (post.id in remindedIds):
-				remindedIds.pop(remindedIds.index(post.id))
+			if (post.id in reminded_ids):
+				reminded_ids.pop(reminded_ids.index(post.id))
 
-		elif post_age > reminder_age and not post.id in remindedIds:
+		elif post_age > reminder_age and not post.id in reminded_ids:
 			print(f"  Remind  {post.id} (age={post_age})")
 			remind_to_add_flair(post)
-			remindedIds.append(post.id)
+			reminded_ids.append(post.id)
 
 		else:
-			print(f"  Wait    {post.id} (age={post_age}, reminded={post.id in remindedIds})")
+			print(f"  Wait    {post.id} (age={post_age}, reminded={post.id in reminded_ids})")
 
 	# Remove post IDs we shouldn't encounter anymore
 	# TODO: this isn't perfect, older posts can backflow into /new when removing newer posts
 	# HACK: multiply by 3 to hopefully prevent any reasonable issues
-	while len(remindedIds) > 3 * posts_per_run:
-		remindedIds.pop(0)
+	while len(reminded_ids) > 3 * posts_per_run:
+		reminded_ids.pop(0)
 
 	# write state to disk so we can resume if a crash occurs
 	with open("flairbot_state.json", "w") as file:
 		json.dump({
 			'reminded_ids': reminded_ids,
-			'initial_time': initial:time
+			'initial_time': initial_time
 		}, file)
 
 	print("Finished")

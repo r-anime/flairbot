@@ -25,21 +25,29 @@ reminder_age_minutes = int(reminder_age / 60)
 removal_age_minutes = int(removal_age / 60)
 
 r = praw.Reddit(**config["Auth"])
-print(f"Logged in as /u/{r.user.me().name}")
 # if not dry_run:
 # 	raise Exception
 sub = r.subreddit(subreddit)
-print(f"Watching /r/{sub.display_name}")
+print(f"Logged in as /u/{r.user.me().name} on /r/{sub.display_name}")
 
 try:
-	with open("remindedIds.json", "r") as file:
-		remindedIds = json.load(file)
-		print("Recovered state from last run")
+	with open("flairbot_state.json", "r") as file:
+		state = json.load(file)
+		reminded_ids = state['reminded_ids']
+		initial_time = state['initial_time']
+	print("Recovered state from last run")
 except:
-	print("Failed to recover state from last run, starting fresh")
-	remindedIds = []
+	# backwards compatibility: remove before next version
+	try:
+		with open("remindedIds.json", "r") as file:
+			reminded_ids = json.load(file)
+			initial_time = 0
+		print("Loaded reminded IDs from remindedIds.json; assuming no time limit")
+	except:
+		print("Failed to recover state from last run, starting fresh")
+		reminded_ids = []
+		initial_time = time.time()
 
-initial_time = time.time()
 
 def remind_to_add_flair(submission):
 	if dry_run:
@@ -101,9 +109,12 @@ def main():
 	while len(remindedIds) > 3 * posts_per_run:
 		remindedIds.pop(0)
 
-	# write IDs to disk so we can resume if a crash occurs
-	with open("remindedIds.json", "w") as file:
-		json.dump(remindedIds, file)
+	# write state to disk so we can resume if a crash occurs
+	with open("flairbot_state.json", "w") as file:
+		json.dump({
+			'reminded_ids': reminded_ids,
+			'initial_time': initial:time
+		}, file)
 
 	print("Finished")
 

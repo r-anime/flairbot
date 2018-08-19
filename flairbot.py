@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import configparser
 import praw
 import json
@@ -58,7 +60,7 @@ def remind_to_add_flair(submission):
 				username=submission.author.name,
 				reminder_age_minutes=reminder_age_minutes,
 				removal_age_minutes=removal_age_minutes
-			))
+			)).mod.distinguish()
 		except Exception as e:
 			print(f"    {e!r}")
 
@@ -72,7 +74,7 @@ def remove_for_missing_flair(submission):
 				username=submission.author.name,
 				reminder_age_minutes=reminder_age_minutes,
 				removal_age_minutes=removal_age_minutes
-			))
+			)).mod.distinguish()
 		except Exception as e:
 			print(f"    {e!r}")
 

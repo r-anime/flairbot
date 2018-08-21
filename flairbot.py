@@ -84,7 +84,10 @@ def main():
 	for post in sub.new(limit=posts_per_run):
 		post_age = int(time.time() - post.created_utc)
 
-		if post.link_flair_text or post.link_flair_css_class:
+		if post.distinguished:
+			print(f"  Mod     {post.id} (author={post.author})")
+
+		elif post.link_flair_text or post.link_flair_css_class:
 			print(f"  Flaired {post.id} (link_flair_text={repr(post.link_flair_text)}, link_flair_css_class={repr(post.link_flair_css_class)})")
 
 		elif post.created_utc < initial_time:

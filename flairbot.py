@@ -56,11 +56,12 @@ def remind_to_add_flair(submission):
 		print(f"    confirm: https://redd.it/{submission.id}")
 	else:
 		try:
-			submission.reply(reminder_message.format(
+			submission.author.message(reminder_subject, reminder_message.format(
+				id=submission.id,
 				username=submission.author.name,
 				reminder_age_minutes=reminder_age_minutes,
 				removal_age_minutes=removal_age_minutes
-			)).mod.distinguish()
+			))
 		except Exception as e:
 			print(f"    {e!r}")
 
@@ -70,11 +71,12 @@ def remove_for_missing_flair(submission):
 	else:
 		try:
 			submission.mod.remove()
-			submission.reply(removal_message.format(
+			submission.author.message(removal_subject, removal_message.format(
+				id=submission.id,
 				username=submission.author.name,
 				reminder_age_minutes=reminder_age_minutes,
 				removal_age_minutes=removal_age_minutes
-			)).mod.distinguish()
+			))
 		except Exception as e:
 			print(f"    {e!r}")
 

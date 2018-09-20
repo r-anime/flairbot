@@ -15,7 +15,9 @@ interval = int(config["Options"]["interval"])
 reminder_age = int(config["Options"]["reminder_age"])
 removal_age = int(config["Options"]["removal_age"])
 posts_per_run = int(config["Options"]["posts_per_run"])
+reminder_subject= config["Options"]["reminder_subject"]
 reminder_message = config["Options"]["reminder_message"]
+removal_subject = config["Options"]["removal_subject"]
 removal_message = config["Options"]["removal_message"]
 dry_run = config["Options"].getboolean("dry_run", False)
 

@@ -1,5 +1,6 @@
 config.ini
 remindedIds.json
+flairbot_state.json
 .vscode
 
 # Byte-compiled / optimized / DLL files

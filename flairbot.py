@@ -91,6 +91,15 @@ def main():
 		if post.distinguished:
 			print(f"  Mod     {post.id} (author={post.author})")
 
+		# Temporary stuff, this will be removed later
+		# though this does remind me that I should try to generalize the reminder templates somehow
+		elif post.link_flair_text is "Fanart"
+				and not post.is_self
+				and not post.is_original_content
+				and not "[oc]" in post.title.lower():
+			print(f"  OC temp {post.id}")
+			post.reply("Hi! If you're submitting art you created, please use the new \"OC Fanart\" flair. If not, you can ignore this automated message.")
+
 		elif post.link_flair_text or post.link_flair_css_class:
 			print(f"  Flaired {post.id} (link_flair_text={repr(post.link_flair_text)}, link_flair_css_class={repr(post.link_flair_css_class)})")
 

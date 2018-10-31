@@ -52,6 +52,9 @@ except:
 		reminded_ids = []
 		initial_time = time.time()
 
+# temp garbage (this is how tech debt happens kids)
+# this one also doesn't have any persistence but hopefully that's fine it'll be fiiiiiiiine
+oc_reminded_ids = []
 
 def remind_to_add_flair(submission):
 	if dry_run:
@@ -93,11 +96,13 @@ def main():
 
 		# Temporary stuff, this will be removed later
 		# though this does remind me that I should try to generalize the reminder templates somehow
-		elif post.link_flair_text is "Fanart"
+		elif post.id not in oc_reminded_ids
+				and post.link_flair_text is "Fanart"
 				and not post.is_self
 				and not post.is_original_content
 				and not "[oc]" in post.title.lower():
 			print(f"  OC temp {post.id}")
+			oc_reminded_ids.append(post.id)
 			post.reply("Hi! If you're submitting art you created, please use the new \"OC Fanart\" flair. If not, you can ignore this automated message.")
 
 		elif post.link_flair_text or post.link_flair_css_class:

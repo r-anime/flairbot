@@ -17,9 +17,13 @@ removal_age = int(config["Options"]["removal_age"])
 posts_per_run = int(config["Options"]["posts_per_run"])
 reminder_subject= config["Options"]["reminder_subject"]
 reminder_message = config["Options"]["reminder_message"]
-removal_subject = config["Options"]["removal_subject"]
-removal_message = config["Options"]["removal_message"]
 dry_run = config["Options"].getboolean("dry_run", False)
+episode_bot_account = config["Options"]["episode_bot_account"]
+
+# Load flair template IDs
+flairs = config["Flairs"]
+# Load all removal reasons
+removals = config["Removals"]
 
 if dry_run:
 	print("  Performing a dry run; no replies or removals will be made")
@@ -55,59 +59,77 @@ except:
 
 def remind_to_add_flair(submission):
 	if dry_run:
-		print(f"    confirm: https://redd.it/{submission.id}")
-	else:
-		try:
-			submission.author.message(reminder_subject, reminder_message.format(
-				id=submission.id,
-				username=submission.author.name,
-				reminder_age_minutes=reminder_age_minutes,
-				removal_age_minutes=removal_age_minutes
-			))
-		except Exception as e:
-			print(f"    {e!r}")
+		print(f"    confirm remind_flair: {submission.shortlink}")
+		return
+	try:
+		submission.author.message(reminder_subject, reminder_message.format(
+			link=submission.shortlink,
+			username=submission.author.name,
+			removal_age_minutes=removal_age_minutes,
+		))
+	except Exception as e:
+		print(f"    {e!r}")
 
-def remove_for_missing_flair(submission):
+def remove(post, reason):
 	if dry_run:
-		print(f"    confirm: https://redd.it/{submission.id}")
-	else:
-		try:
-			submission.mod.remove()
-			submission.author.message(removal_subject, removal_message.format(
-				id=submission.id,
-				username=submission.author.name,
-				reminder_age_minutes=reminder_age_minutes,
-				removal_age_minutes=removal_age_minutes
-			))
-		except Exception as e:
-			print(f"    {e!r}")
+		print(f"    confirm {reason}: {post.shortlink}")
+		return
+	try:
+		post.mod.remove()
+		post.author.message(removals['subject'], removals[reason].format(
+			link=post.shortlink,
+			username=post.author.name,
+			removal_age_minutes=removal_age_minutes,
+			episode_bot_account=episode_bot_account,
+		))
+	except Exception as e:
+		print(f"    {e!r}")
 
 def main():
+	"""
+	Main loop logic:
+	- Check all posts in /new
+		if post.age < 3 minutes: do nothing
+		elif flaired: check flair post validity (resticted content)
+		elif not flaired: remind flair
+		elif post.age > 15 minutes: remove
+	"""
 	print("Running")
 
 	for post in sub.new(limit=posts_per_run):
 		post_age = int(time.time() - post.created_utc)
 
+		# ignore mod posts
 		if post.distinguished:
 			print(f"  Mod     {post.id} (author={post.author})")
 
-		elif post.link_flair_text or post.link_flair_css_class:
-			print(f"  Flaired {post.id} (link_flair_text={repr(post.link_flair_text)}, link_flair_css_class={repr(post.link_flair_css_class)})")
-
+		# ignore posts created before bot started
+		# why?
 		elif post.created_utc < initial_time:
 			print(f"  Too Old {post.id} (age={post_age})")
 
-		elif post_age > removal_age:
-			print(f"  Remove  {post.id} (age={post_age})")
-			remove_for_missing_flair(post)
-			# We don't need to track the ID anymore because it won't be in /new
-			if (post.id in reminded_ids):
-				reminded_ids.pop(reminded_ids.index(post.id))
+		# if give three minutes for flairing or correcting flair
+		elif post_age < reminder_age:
+			print(f"  Too Recent {post.id} (age={post_age})")
+			continue
 
+		# if post is flaired, check that the format is correct
+		elif post.link_flair_text or post.link_flair_css_class:
+			status = check_flair_post_validity(post)
+			print(f"  Flaired {post.id} (status={status}, link_flair_text={repr(post.link_flair_text)}, link_flair_css_class={repr(post.link_flair_css_class)})")
+
+		# post is not flaired, remind to flair if not already done
 		elif post_age > reminder_age and not post.id in reminded_ids:
 			print(f"  Remind  {post.id} (age={post_age})")
 			remind_to_add_flair(post)
 			reminded_ids.append(post.id)
+
+		elif post_age > removal_age:
+			print(f"  Remove  {post.id} (age={post_age})")
+			remove(post, reason='unflaired')
+			# We don't need to track the ID anymore because it won't be in /new
+			if (post.id in reminded_ids):
+				reminded_ids.remove(post.id)
 
 		else:
 			print(f"  Wait    {post.id} (age={post_age}, reminded={post.id in reminded_ids})")
@@ -126,6 +148,82 @@ def main():
 		}, file)
 
 	print("Finished")
+
+def check_flair_post_validity(post):
+	"""
+	Check the the type of post works with flairs.
+	Logic:
+		Discussion - must be text
+		Rewatch - Must be text
+		Official Media - Can't be single image
+		News - Can't be image
+		Fanart - Must be text
+		Cosplay - Must be text
+		Recommendation - Can't be image
+		Episode - Must be by /u/AutoLovepon
+	Returns False if post was removed, True otherwise
+	"""
+	if post.link_flair_template_id == flairs['Discussion']:
+		if not is_text(post):
+			remove(post, reason='not_text')
+			return 'not_text'
+	elif post.link_flair_template_id == flairs['Rewatch']:
+		if not is_text(post):
+			remove(post, reason='not_text')
+			return 'not_text'
+	elif post.link_flair_template_id == flairs['Official Media']:
+		if is_image(post):
+			remove(post, reason='single_image_news')
+			return 'single_image_news'
+	elif post.link_flair_template_id == flairs['News']:
+		if is_image(post):
+			remove(post, reason='single_image_news')
+			return 'single_image_news'
+	elif post.link_flair_template_id == flairs['Fanart']:
+		if not is_text(post):
+			remove(post, reason='not_text')
+			return 'not_text'
+	elif post.link_flair_template_id == flairs['Cosplay']:
+		if not is_text(post):
+			remove(post, reason='not_text')
+			return 'not_text'
+	elif post.link_flair_template_id == flairs['Recommendation']:
+		if is_image(post):
+			remove(post, reason='single_image')
+			return 'single_image'
+	elif post.link_flair_template_id == flairs['Episode']:
+		if not post.author.name == episode_bot_account:
+			remove(post, reason='not_bot_episode')
+			return 'not_bot_episode'
+	return "OK"
+
+def is_image(post):
+	if post.is_reddit_media_domain:
+		# covers i.redd.it
+		return True
+	if post.is_self:
+		body = post.selftext.strip()
+		if body.startswith('http') and len(body.split()) == 1:
+			# body is single link
+			url = body
+		else:
+			return False
+	else:
+		url = post.url
+
+	if url.endswith('.jpg') \
+	   or url.endswith('.png') \
+	   or url.endswith('.gif'):
+		   return True
+	if 'i.imgur.com' in url:
+		return True
+	if 'imgur' in url and not ('/a/' in url or 'gallery' in url):
+		return True
+
+	return False
+
+def is_text(post):
+	return post.is_self and not is_image(post)
 
 if __name__ == "__main__":
 	# https://stackoverflow.com/a/25251804

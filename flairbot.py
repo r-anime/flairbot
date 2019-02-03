@@ -181,7 +181,7 @@ def check_flair_post_validity(post):
 			return 'single_image_news'
 	elif post.link_flair_template_id == flairs['Fanart']:
 		if not is_text(post):
-			remove(post, reason='not_text')
+			remove(post, reason='not_text_fanart')
 			return 'not_text'
 	elif post.link_flair_template_id == flairs['Cosplay']:
 		if not is_text(post):

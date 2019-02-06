@@ -217,6 +217,8 @@ def is_image(post):
 		   return True
 	if 'i.imgur.com' in url:
 		return True
+	if 'pbs.twimg.com' in url:
+		return True
 	if 'imgur' in url and not ('/a/' in url or 'gallery' in url):
 		return True
 

@@ -164,8 +164,8 @@ def check_flair_post_validity(post):
 	Returns False if post was removed, True otherwise
 	"""
 	if post.link_flair_template_id == flairs['Discussion']:
-		if not is_text(post):
-			remove(post, reason='not_text')
+		if is_image(post):
+			remove(post, reason='single_image')
 			return 'not_text'
 	elif post.link_flair_template_id == flairs['Rewatch']:
 		if not is_text(post):

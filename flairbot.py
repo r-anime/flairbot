@@ -164,7 +164,7 @@ def check_flair_post_validity(post):
 	Returns False if post was removed, True otherwise
 	"""
 	if post.link_flair_template_id == flairs['Discussion']:
-		if is_image(post):
+		if is_image(post) and not "chart" in post.title.lower():
 			remove(post, reason='single_image')
 			return 'not_text'
 	elif post.link_flair_template_id == flairs['Rewatch']:

@@ -1,7 +1,10 @@
 config.ini
 remindedIds.json
 flairbot_state.json
+
+# IDE stuff
 .vscode
+*.iml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

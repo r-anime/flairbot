@@ -105,7 +105,9 @@ def main():
 		# ignore mod posts
 		if post.distinguished:
 			print(f"  Mod     {post.id} (author={post.author})")
-
+		# ignore manually approved posts (for sticky, weekly, etc)
+		elif post.approved:
+			print(f"  Approvd {post.id} (author={post.author}, approved_by={post.approved_by}")
 		# ignore posts created before bot started
 		# why?
 		elif post.created_utc < initial_time:
@@ -122,12 +124,14 @@ def main():
 			print(f"  Flaired {post.id} (status={status}, link_flair_text={repr(post.link_flair_text)}, link_flair_css_class={repr(post.link_flair_css_class)})")
 
 		# post is not flaired, remind to flair if not already done
-		elif post_age > reminder_age and not post.id in reminded_ids:
+		elif reminder_age <= post_age <= removal_age and post.id not in reminded_ids:
 			print(f"  Remind  {post.id} (age={post_age})")
 			remind_to_add_flair(post)
 			reminded_ids.append(post.id)
 
-		elif post_age > removal_age:
+		# if the user was reminded (i.e. above code block was hit previously), remove
+		# this will leave unflaired posts up under some circumstances, e.g. manual reapproval after removal age
+		elif post_age > removal_age and post.id in reminded_ids:
 			print(f"  Remove  {post.id} (age={post_age})")
 			remove(post, reason='unflaired')
 			# We don't need to track the ID anymore because it won't be in /new

@@ -156,9 +156,9 @@ def check_flair_post_validity(post):
 	"""
 	Check the the type of post works with flairs.
 	Logic:
-		Discussion - must be text
+		Discussion - Must be text
 		Rewatch - Must be text
-		Official Media - Can't be single image
+		~~Official Media - Can't be single image~~ REMOVED (key visual exemption)
 		News - Can't be image
 		Fanart - Must be text
 		Cosplay - Must be text

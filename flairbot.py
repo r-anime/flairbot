@@ -174,10 +174,10 @@ def check_flair_post_validity(post):
 		if not is_text(post):
 			remove(post, reason='not_text')
 			return 'not_text'
-	elif post.link_flair_template_id == flairs['Official Media']:
-		if is_image(post):
-			remove(post, reason='single_image_news')
-			return 'single_image_news'
+	#elif post.link_flair_template_id == flairs['Official Media']:
+	#	if is_image(post):
+	#		remove(post, reason='single_image_news')
+	#		return 'single_image_news'
 	elif post.link_flair_template_id == flairs['News']:
 		if is_image(post):
 			remove(post, reason='single_image_news')

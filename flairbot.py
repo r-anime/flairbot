@@ -74,6 +74,9 @@ def remove(post, reason):
 	if dry_run:
 		print(f"    confirm {reason}: {post.shortlink}")
 		return
+	if post.approved:
+		print(f"    no override of mod aproval: {post.shortlink}")
+		return
 	try:
 		post.mod.remove()
 		post.author.message(removals['subject'], removals[reason].format(

@@ -102,7 +102,9 @@ def main():
 		# ignore mod posts
 		if post.distinguished:
 			print(f"  Mod     {post.id} (author={post.author})")
-
+		# ignore manually approved posts (for sticky, weekly, etc)
+		elif post.approved:
+			print(f"  Approvd {post.id} (author={post.author}, approved_by={post.approved_by}")
 		# ignore posts created before bot started
 		# why?
 		elif post.created_utc < initial_time:
@@ -119,7 +121,6 @@ def main():
 			print(f"  Flaired {post.id} (status={status}, link_flair_text={repr(post.link_flair_text)}, link_flair_css_class={repr(post.link_flair_css_class)})")
 
 		# post is not flaired, remind to flair if not already done
-		# if it stays up past the removal age and still isn't flaired, that's our fault so don't message them
 		elif reminder_age <= post_age <= removal_age and post.id not in reminded_ids:
 			print(f"  Remind  {post.id} (age={post_age})")
 			remind_to_add_flair(post)

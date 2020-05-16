@@ -202,6 +202,9 @@ def check_flair_post_validity(post):
 		if not post.author.name == episode_bot_account:
 			remove(post, reason='not_bot_episode')
 			return 'not_bot_episode'
+	elif post.link_flair_template_id == flairs['Meme']:
+		remove(post, reason='meme_post')
+		return 'meme_post'
 	return "OK"
 
 def is_image(post):

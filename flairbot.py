@@ -45,16 +45,9 @@ try:
 		initial_time = state['initial_time']
 	print("Recovered state from last run")
 except:
-	# backwards compatibility: remove before next version
-	try:
-		with open("remindedIds.json", "r") as file:
-			reminded_ids = json.load(file)
-			initial_time = 0
-		print("Loaded reminded IDs from reminded_ids.json; assuming no time limit")
-	except:
-		print("Failed to recover state from last run, starting fresh")
-		reminded_ids = []
-		initial_time = time.time()
+	print("Failed to recover state from last run, starting fresh")
+	reminded_ids = []
+	initial_time = time.time()
 
 
 def remind_to_add_flair(submission):
@@ -107,7 +100,7 @@ def main():
 			print(f"  Mod     {post.id} (author={post.author})")
 		# ignore manually approved posts (for sticky, weekly, etc)
 		elif post.approved:
-			print(f"  Approvd {post.id} (author={post.author}, approved_by={post.approved_by}")
+			print(f"  Approvd {post.id} (author={post.author}, approved_by={post.approved_by})")
 		# ignore posts created before bot started
 		# why?
 		elif post.created_utc < initial_time:
@@ -186,7 +179,8 @@ def check_flair_post_validity(post):
 		if is_image(post):
 			remove(post, reason='single_image_news')
 			return 'single_image_news'
-	elif post.link_flair_template_id == flairs['Fanart']:
+	elif post.link_flair_template_id == flairs['Fanart'] \
+			or post.link_flair_template_id == flairs['OC Fanart']:
 		if not is_text(post):
 			remove(post, reason='not_text_fanart')
 			return 'not_text'

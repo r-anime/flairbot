@@ -1,7 +1,2 @@
 config.ini
-remindedIds.json
 flairbot_state.json
-
-__pycache__/
-*.py[cod]
-*$py.class

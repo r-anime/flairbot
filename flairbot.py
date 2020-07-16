@@ -171,10 +171,6 @@ def check_flair_post_validity(post):
 		if not is_text(post):
 			remove(post, reason='not_text')
 			return 'not_text'
-	#elif post.link_flair_template_id == flairs['Official Media']:
-	#	if is_image(post):
-	#		remove(post, reason='single_image_news')
-	#		return 'single_image_news'
 	elif post.link_flair_template_id == flairs['News']:
 		if is_image(post):
 			remove(post, reason='single_image_news')
@@ -196,6 +192,10 @@ def check_flair_post_validity(post):
 		if not post.author.name == episode_bot_account:
 			remove(post, reason='not_bot_episode')
 			return 'not_bot_episode'
+	elif post.link_flair_template_id == flairs['Help']:
+		if is_image(post):
+			remove(post, reason='not_text_help')
+			return 'not_text_help'
 	elif post.link_flair_template_id == flairs['Meme']:
 		remove(post, reason='meme_post')
 		return 'meme_post'

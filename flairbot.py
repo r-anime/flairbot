@@ -49,20 +49,6 @@ except:
 	reminded_ids = []
 	initial_time = time.time()
 
-# TEMPORARY FILTER FOR MUSHOKU
-def run_temporary_filter(post):
-        if 'mushoku tensei' in post.title.casefold() or 'jobless reincarnation' in post.title.casefold():
-                comment = post.reply('''
-Because this post is asking about the Mushoku Tensei anime, the mod team would like to provide to following information.
-
-**This show contains scenes that some viewers may find disturbing, including harassment of underage characters and pedophilic behavior. Contains scenes of a sexual nature and is intended for mature audiences only. Viewer discretion is advised.**
-
-Because of the sensitive nature of this topic, [discussions about pedophilic aspects in Mushoku Tensei have been restricted to episode discussions only](https://www.reddit.com/r/anime/comments/leacfd/meta_thread_month_of_february_07_2021/gpto5t6/). This temporary rule has been put in place to avoid widespread toxicity and harassment between users on the subreddit. If you have feedback about this message, please post it [as a reply to this meta thread comment](https://www.reddit.com/r/anime/comments/lzejk1/meta_thread_month_of_march_07_2021/gq663rm/).
-''')
-                comment.mod.distinguish(sticky=True)
-                comment.mod.lock()
-                post.mod.approve()
-                print(f"    added temporary MT warning ({post.shortlink})")
 
 def remind_to_add_flair(submission):
 	if dry_run:
@@ -181,8 +167,6 @@ def check_flair_post_validity(post):
 		if is_image(post) and not "chart" in post.title.lower():
 			remove(post, reason='single_image')
 			return 'not_text'
-		else:
-			run_temporary_filter(post)
 	elif post.link_flair_template_id == flairs['Rewatch']:
 		if not is_text(post):
 			remove(post, reason='not_text')
@@ -204,8 +188,6 @@ def check_flair_post_validity(post):
 		if is_image(post):
 			remove(post, reason='single_image')
 			return 'single_image'
-		else:
-			run_temporary_filter(post)
 	elif post.link_flair_template_id == flairs['Episode']:
 		if not post.author.name == episode_bot_account:
 			remove(post, reason='not_bot_episode')

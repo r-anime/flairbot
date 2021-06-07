@@ -206,12 +206,7 @@ def is_image(post):
 		# covers i.redd.it
 		return True
 	if post.is_self:
-		body = post.selftext.strip()
-		if body.startswith('http') and len(body.split()) == 1:
-			# body is single link
-			url = body
-		else:
-			return False
+		return False
 	else:
 		url = post.url
 

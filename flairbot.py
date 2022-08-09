@@ -32,11 +32,6 @@ if dry_run:
 reminder_age_minutes = int(reminder_age / 60)
 removal_age_minutes = int(removal_age / 60)
 
-r = praw.Reddit(**config["Auth"])
-# if not dry_run:
-# 	raise Exception
-sub = r.subreddit(subreddit)
-print(f"Logged in as /u/{r.user.me().name} on /r/{sub.display_name}")
 
 try:
     with open("flairbot_state.json", "r") as file:
@@ -234,7 +229,33 @@ def is_text(post):
     return post.is_self and not is_image(post)
 
 
+def get_reddit_instance(config_dict: dict):
+    """
+    Initialize a reddit instance and return it.
+
+    :param config_dict: dict containing necessary values for authenticating
+    :return: reddit instance
+    """
+
+    auth_dict = {**config_dict}
+    password = config_dict["password"]
+    totp_secret = config_dict.get("totp_secret")
+
+    if totp_secret:
+        import mintotp
+        auth_dict["password"] = f"{password}:{mintotp.totp(totp_secret)}"
+
+    reddit_instance = praw.Reddit(**auth_dict)
+    return reddit_instance
+
+
 if __name__ == "__main__":
+    r = get_reddit_instance(config["Auth"])
+    # if not dry_run:
+    # 	raise Exception
+    sub = r.subreddit(subreddit)
+    print(f"Logged in as /u/{r.user.me().name} on /r/{sub.display_name}")
+
     # https://stackoverflow.com/a/25251804
     start = time.time()
     while True:

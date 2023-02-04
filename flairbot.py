@@ -160,7 +160,7 @@ def check_flair_post_validity(post):
             Rewatch - Must be text
             ~~Official Media - Can't be single image~~ REMOVED (key visual exemption)
             News - Can't be image
-            Fanart - Must be text
+            Fanart - Can't be image
             Cosplay - Must be text
             Recommendation - Can't be image
             Episode - Must be by /u/AutoLovepon
@@ -179,9 +179,9 @@ def check_flair_post_validity(post):
             remove(post, reason="single_image_news")
             return "single_image_news"
     elif post.link_flair_template_id == flairs["Fanart"] or post.link_flair_template_id == flairs["OC Fanart"]:
-        if not is_text(post):
-            remove(post, reason="not_text_fanart")
-            return "not_text"
+        if is_image(post):
+            remove(post, reason="single_image_fanart")
+            return "single_image_fanart"
     elif post.link_flair_template_id == flairs["Cosplay"]:
         if not is_text(post):
             remove(post, reason="not_text")
